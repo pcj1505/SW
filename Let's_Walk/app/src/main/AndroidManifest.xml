@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.techtown.letswalk">
+    package="com.example.letswalk">
 
     <application
         android:allowBackup="true"
@@ -18,9 +18,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyCr0nhm4bzJvbMWOlr_6va7qqq4xV4La_I"/>
     </application>
 
 </manifest>

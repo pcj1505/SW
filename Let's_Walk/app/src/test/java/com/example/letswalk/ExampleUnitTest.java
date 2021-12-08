@@ -1,4 +1,4 @@
-package org.techtown.letswalk;
+package com.example.letswalk;
 
 import org.junit.Test;
 
