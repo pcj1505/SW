@@ -19,6 +19,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
 
+// 디비 연동
 public class db_connection {
 	Connection con = null;
 	String url = "jdbc:oracle:thin:@localhost:1521:XE";
@@ -115,7 +116,7 @@ public class db_connection {
 	DefaultTableCellRenderer tScheduleCellRenderer = new DefaultTableCellRenderer();
 
 	protected JScrollPane get_community() { // 커뮤니티 DB
-		String sql = "SELECT 번호,제목,아이디 FROM 커뮤니티 order by 번호 DESC";
+		String sql = "SELECT 번호,제목,아이디 FROM 커뮤니티 order by decode(post,'공지',1), to_number(번호) desc";
 		String TTT[] = new String[3]; // 거래내역 담은 배열
 		try {
 			DB_Connect();
@@ -123,9 +124,9 @@ public class db_connection {
 			ResultSet rs = pstmt.executeQuery(); // select 문에 사용
 			model.setNumRows(0);
 			while (rs.next()) {
-				TTT[0] = Integer.toString(rs.getInt(1));
-				TTT[1] = rs.getString(2);
-				TTT[2] = rs.getString(3);
+				TTT[0] = rs.getString(1); // 번호
+				TTT[1] = rs.getString(2); // 제목
+				TTT[2] = rs.getString(3); // 아이디
 				model.addRow(TTT); // 테이블에 추가
 			}
 			pstmt.close();
@@ -134,8 +135,8 @@ public class db_connection {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		table.setRowHeight(35);
-		table.getColumn("글번호").setPreferredWidth(10);
+		table.setRowHeight(35); // 테이블 행 높이
+		table.getColumn("글번호").setPreferredWidth(10); // 해당 열길이 조정
 		table.getColumn("제목").setPreferredWidth(230);
 		table.getColumn("아이디").setPreferredWidth(30);
 		// DefaultTableCellHeaderRenderer의 정렬을 가운데 정렬로 지정
@@ -147,8 +148,10 @@ public class db_connection {
 			tcmSchedule.getColumn(i).setCellRenderer(tScheduleCellRenderer);
 
 		}
+		table.getTableHeader().setReorderingAllowed(false); // 컬럼들 이동 불가
+		table.getTableHeader().setResizingAllowed(false); // 컬럼 크기 조절 불가
 		table.getParent().setBackground(new Color(204, 255, 255));
-		jsp.setPreferredSize(new Dimension(380, 400));
+		jsp.setPreferredSize(new Dimension(385, 400));
 		return jsp;
 	}
 
@@ -156,12 +159,12 @@ public class db_connection {
 	List<String> post = new ArrayList<String>(); // 가변리스트
 	String post_list[]; // 게시글 담은 배열
 
-	protected void show_post(int n) {
+	protected void show_post(String n) {
 		String sql = "SELECT 제목,내용,아이디 FROM 커뮤니티 WHERE 번호 = ?";
 		try {
 			DB_Connect();
 			PreparedStatement pstmt = con.prepareStatement(sql);
-			pstmt.setInt(1, n);
+			pstmt.setString(1, n);
 			ResultSet rs = pstmt.executeQuery(); // select 문에 사용
 			while (rs.next()) {
 				post.add(rs.getString(1)); // 제목
@@ -179,13 +182,17 @@ public class db_connection {
 
 	}
 
-	protected void user_write(String user_id, String title, String content) { // 회원 글쓰기
+	protected void user_write(String user_id, String title, String content, String post) {
+		// 회원 글쓰기
 		try {
 			DB_Connect();
-			CallableStatement cstmt = con.prepareCall("{call write(?, ?, ?)}");
+			// 프로시저 호출
+			// 인자값으로 아이디, 제목, 내용, 공지인지 아닌지 넘겨줌
+			CallableStatement cstmt = con.prepareCall("{call write(?, ?, ?, ?)}");
 			cstmt.setString(1, user_id);
 			cstmt.setString(2, title);
 			cstmt.setString(3, content);
+			cstmt.setString(4, post);
 			cstmt.executeQuery();
 			JOptionPane.showMessageDialog(null, "등록 완료");
 			cstmt.close();
